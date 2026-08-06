@@ -5,7 +5,6 @@ def init_db():
     conn = sqlite3.connect("products.db")
     cur = conn.cursor()
 
-    # Stores table (Tesco, Lidl)
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS stores (
@@ -15,7 +14,6 @@ def init_db():
     """
     )
 
-    # Products table (shared product names)
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS products (
@@ -25,7 +23,6 @@ def init_db():
     """
     )
 
-    # Prices table (each store’s price for each product)
     cur.execute(
         """
         CREATE TABLE IF NOT EXISTS prices (
