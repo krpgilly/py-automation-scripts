@@ -1,7 +1,3 @@
-# TODO: write function to convert price + weight into price per 100g
-# TODO: handle edge cases (e.g., missing weight)
-
-
 def normalize_price(price_str, weight_str):
     """
     Convert raw price + weight strings into price per 100g.

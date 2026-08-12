@@ -1,7 +1,6 @@
-# TODO: write tests for normalize_price() function
 # TODO: test rounding, missing data, weird formats
 
-from normalize import normalize_price
+from database.normalize import normalize_price
 
 def test_basic():
     assert normalize_price("£1.00", "100g") == 1.0
