@@ -6,16 +6,17 @@ from scrapers.find_price import find_price
 
 
 def scrape_tesco():
-    url = "https://www.tesco.com/p/milbona-brie/p10045855"
+    url = "https://www.tesco.com/shop/en-GB/products/299914515"
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     driver.get(url)
 
     selectors = [
-    (By.CLASS_NAME, "ods-price__value"),
-    (By.CSS_SELECTOR, "span[data-testid='value']"),
-    (By.XPATH, "//span[contains(@class, 'price')]")
-]
+        (By.CSS_SELECTOR, "p[class*='priceText']"),
+        (By.CSS_SELECTOR, ".price-per-item"),
+        (By.CSS_SELECTOR, "span[data-testid='value']"),
+        (By.XPATH, "//span[contains(@class, 'actual-price')]")
+    ]
 
     try:
         price = find_price(driver, selectors, timeout=10)
