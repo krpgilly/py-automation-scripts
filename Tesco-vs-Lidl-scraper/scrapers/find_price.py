@@ -20,3 +20,16 @@ def find_price(driver, selectors, timeout=10):
             continue
     
     raise ValueError(f"None of the selectors worked: {selectors}")
+
+def find_unit_price(driver, selectors, timeout=10):
+
+    for by, sel in selectors:
+        try:
+            unit_price_element = WebDriverWait(driver, timeout).until(
+                EC.presence_of_element_located((by, sel))
+            )
+            return unit_price_element.text.strip()
+        except TimeoutException:
+            continue
+
+    raise ValueError(f"None of the selectors worked: {selectors}")

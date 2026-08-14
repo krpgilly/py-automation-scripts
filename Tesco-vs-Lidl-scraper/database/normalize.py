@@ -37,3 +37,21 @@ def normalize_price(price_str, weight_str):
     except Exception as e:
         print(f"Error normalising price ({price_str}) and weight ({weight_str}):", e)
         return None
+
+def normalize_unit_price(unit_price_str):
+    try:
+        price = unit_price_str.replace("£", "").strip()
+
+        if "/100g" in price:
+            price = float(price.replace("/100g", "").strip())
+            return price
+        elif"/kg" in price:
+            price = float(price.replace("/kg", "").strip()) /10
+            return price
+        else:
+            print(f"Unknown unit price format: {unit_price_str}")
+            return None
+
+    except Exception as e:
+        print(f"Error normalising unit price ({unit_price_str}):", e)
+        return None
