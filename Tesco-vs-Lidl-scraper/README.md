@@ -1,10 +1,32 @@
 # Tesco vs Lidl Price Comparison
 
-A Python scraper that pulls grocery prices from Tesco and Lidl, then normalizes everything to a single metric: price per 100g. Makes it easy to compare whether that tin of beans is actually cheaper at Lidl or if Tesco's just running a promotion.
+A beginner-friendly Python project that compares supermarket prices using one simple idea: convert everything to a fair value like price per 100g, then compare the shops on the same scale.
+
+This makes it easier to tell whether a product is really cheaper, even when it comes in different sizes or packaging.
 
 ## What This Does
 
-Scrapes product pages from both supermarkets, grabs the raw price and weight, then calculates the real cost per 100g so you're not fooled by different package sizes. Stores everything in a local SQLite database—both the raw numbers and the computed values, so you can see exactly what the scraper found and how it was normalized.
+The project scrapes product data from Tesco and Lidl, pulls out the raw price and item weight, and then normalizes the result into a single metric: price per 100g.
+
+That helps avoid the usual trap where a bigger pack looks cheaper at first glance but is actually worse value.
+
+The app also stores the results in a local SQLite database so the raw values and the calculated values are both saved. This makes it easier to check what the website gave us and what the app calculated from it.
+
+---
+
+## What Is Working Now
+
+The main workflow is now working through `main.py`.
+
+When you run it, the app:
+
+- creates or updates the database tables
+- pulls data from the Tesco scraper
+- pulls data from the Lidl scraper
+- stores each result in SQLite
+- saves the raw price, unit price, normalized price, and timestamp
+
+This means the app is no longer just a scraper prototype. It is a working pipeline that collects data and saves it in a structured way.
 
 ---
 
@@ -12,7 +34,7 @@ Scrapes product pages from both supermarkets, grabs the raw price and weight, th
 
 ### Fallback Selectors for Resilience
 
-Web scraping is fragile. One HTML layout change on Tesco's site and your XPath selector stops working. So instead of betting everything on a single selector, each scraper tries multiple ones in order:
+Web scraping is fragile. A tiny change in the website layout can break a selector. To make the scraper more reliable, each scraper tries a few possible selectors instead of relying on just one.
 
 ```python
 price_selectors = [
@@ -22,42 +44,42 @@ price_selectors = [
 ]
 ```
 
-The `find_price()` function walks through this list, waits up to 10 seconds for each one, and returns the first that actually appears on the page. If none work, it raises an error instead of silently returning garbage data.
+The `find_price()` function checks each option in order and uses the first one that appears. If none work, it raises a useful error instead of returning bad data quietly.
 
 ### Normalize Edge Cases Handled
 
-Real-world pricing data is messy. Weights come as "200g", "1.5kg", or "500mg". Prices might be "£2.50" or "45p". The `normalize_price()` function handles:
+Real supermarket data is messy. Some weights are shown as "200g", some as "1.5kg", and prices may be written as "£2.50" or "45p". The `normalize_price()` logic handles these cases:
 
-- Currency formats: "£" prefix or "p" suffix (converting pence to pounds)
-- Weight units: grams, kilograms, milligrams—all converted to a single unit before calculation
-- Spacing: `" £1.50 "` and `"£1.50"` both work
-- Zero-weight protection: catches division errors before they happen
-- Rounding: results rounded to 3 decimal places for consistency
+- currency values like "£" and "p"
+- weight units like grams, kilograms, and milligrams
+- spacing issues like " £1.50 " and "£1.50"
+- zero-weight protection to prevent division errors
+- rounding for clean, consistent results
 
-The test suite catches regressions on these edge cases. When you normalize `"£2.00"` for `"200g"`, you get exactly `1.0` (£1.00 per 100g), not some float precision nightmare.
+This is important because the comparison should be fair. If you normalize correctly, a 200g item and a 1kg item can be compared properly.
 
 ### Database Schema: Raw + Computed Values
 
-The database keeps both raw and normalized prices:
+The database keeps both the original values and the calculated values:
 
 ```sql
 CREATE TABLE prices (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     store_id INTEGER,
     product_id INTEGER,
-    
-    raw_price TEXT,              -- What the scraper found: "£2.50"
-    raw_unit_price TEXT,         -- What the scraper found: "£1.25/100g"
-    price_per_100g REAL,         -- Computed normalized value
-    
+
+    raw_price TEXT,
+    raw_unit_price TEXT,
+    price_per_100g REAL,
+
     scraped_at TEXT,
-    
+
     FOREIGN KEY (store_id) REFERENCES stores(id),
     FOREIGN KEY (product_id) REFERENCES products(id)
 );
 ```
 
-Why both? If normalization logic has a bug, you can always re-normalize using the raw data. Plus, you can audit exactly what the scraper saw versus what you computed.
+This is helpful because if the normalization logic changes later, the original scraped values are still there. You can always re-calculate and compare old data without losing the source information.
 
 ---
 
@@ -87,8 +109,8 @@ source venv/bin/activate
 pip install selenium webdriver-manager
 ```
 
-- **selenium**: Browser automation library
-- **webdriver-manager**: Automatically downloads and manages Chrome driver versions
+- **selenium**: browser automation for scraping pages
+- **webdriver-manager**: downloads and manages the correct Chrome driver automatically
 
 ### 3. Initialize the Database
 
@@ -96,31 +118,17 @@ pip install selenium webdriver-manager
 python -m database.db
 ```
 
-This creates `products.db` in the project root with the schema ready to go.
+This creates `products.db` in the project root and sets up the tables for stores, products, and prices.
 
-### 4. Run a Scraper
-
-Lidl (currently working):
-
-```bash
-python -m scrapers.lidl_scraper
-```
-
-Tesco (structure in place, selectors still being tuned):
-
-```bash
-python -m scrapers.tesco_scraper
-```
-
-Both will print the found price and normalized price per 100g to the console.
-
-### 5. Run All Scrapers + Compare
+### 4. Run the Project
 
 ```bash
 python main.py
 ```
 
-This orchestrates the full pipeline (coming soon—currently it's just a TODO list).
+This is the main entry point. It runs the scraping flow, saves data to SQLite, and compares the product results in the current working setup.
+
+If you want to run an individual scraper manually, the project still supports that pattern too.
 
 ---
 
@@ -128,37 +136,42 @@ This orchestrates the full pipeline (coming soon—currently it's just a TODO li
 
 ```text
 database/
-  db.py              # Schema initialization
-  normalize.py       # Price normalization logic + unit conversion
+  db.py              # database setup and insert logic
+  normalize.py       # price normalization and unit conversion
 
 scrapers/
-  find_price.py      # Fallback selector logic (the resilience layer)
-  lidl_scraper.py    # Lidl-specific selectors and workflow
-  tesco_scraper.py   # Tesco-specific selectors and workflow
+  find_price.py      # selector fallback logic
+  lidl_scraper.py    # Lidl scraper
+  tesco_scraper.py   # Tesco scraper
 
 tests/
-  test_normalize.py  # Edge case tests for the normalize functions
+  test_normalize.py  # checks for edge cases in the price calculation
 
-main.py              # Entry point (orchestrates both scrapers)
+main.py              # main app entry point; works and stores results
+README.md            # project overview
 ```
 
 ---
 
 ## Planned JSON API
 
-Right now, the scrapers print results to the console and store them in a SQLite database. The next step would be a simple HTTP API that:
+The basic idea behind the project is still the same: collect prices from supermarkets, normalize them, and make the comparison easy to use.
 
-- Serves comparison data as JSON
-- Lets you query prices for a specific product across both stores
-- Returns the historical trend (prices over time)
+The next useful step is a simple JSON API that exposes the saved data in a clean format.
 
-Why? Because:
+This would let you:
 
-1. **Accessibility**: A REST endpoint is easier to consume from other tools, scripts, or a web frontend than directly querying SQLite.
-2. **Separation**: Scraping logic stays separate from serving logic. You can run scrapers on a schedule and keep the API running independently.
-3. **Extensibility**: Once you have an API, adding a web frontend, mobile app, or integrations with shopping apps becomes straightforward.
+- return product comparison data as JSON
+- query prices across both stores for one item
+- see historical price changes over time
 
-Something like:
+Why this is a good next step:
+
+1. **Accessibility**: JSON is easier for scripts, apps, and websites to consume than reading SQLite directly.
+2. **Separation**: the scraper can keep doing its job while the API simply serves the stored results.
+3. **Extensibility**: once the data is in JSON, it is easier to build a small frontend or a more advanced product tracker later.
+
+An example of the kind of output we want:
 
 ```bash
 GET /api/compare?product=brie&store=lidl,tesco
@@ -171,35 +184,46 @@ GET /api/compare?product=brie&store=lidl,tesco
   }
 ```
 
-For now, the raw SQLite queries work fine. But as the project grows, an API layer keeps things clean and flexible.
+This is still a future step, but it fits the same project scope: the scraper gathers the numbers, the database stores them, and the API would just make them easier to use.
 
 ---
 
 ## Testing
 
-Run the normalize tests to ensure edge cases stay handled:
+Run the normalize tests to make sure the price conversion logic still behaves correctly:
 
 ```bash
 python -m pytest tests/test_normalize.py -v
 ```
 
-(Install pytest first: `pip install pytest`)
+If needed, install pytest first:
+
+```bash
+pip install pytest
+```
 
 ---
 
-## Known Limitations & Next Steps
+## Current Status & Next Steps
 
-- **Tesco selectors**: Still being tuned—the HTML structure is more complex than Lidl's
-- **No product matching**: Currently tests on hardcoded URLs; need to build a proper product search + matching workflow
-- **No scheduling**: Prices are only fetched on-demand; a scheduled job (cron / APScheduler) would build historical trends
-- **No frontend**: Data lives in the database—visualizing trends and comparisons needs a UI
+The project is now in a stronger position than before:
+
+- `main.py` is working and runs the pipeline
+- the database schema is storing products, stores, and prices separately
+- the comparison logic is tied to real saved data
+- the JSON API is still the next natural layer to build on top of that data
+
+Possible future improvements include:
+
+- better Tesco selectors and anti-bot handling
+- product matching for more than hardcoded examples
+- scheduled scraping for price history
+- a simple frontend or API dashboard
 
 ---
 
 ## Why This Matters
 
-Supermarket pricing isn't transparent. A 400g tin might be cheaper at one store, but an 800g bottle at another. By normalizing to per-100g, you cut through the packaging tricks and see what you're actually paying for. That's useful for budgeting, price tracking, and calling out when a store is just playing games with their portions.
+Supermarket pricing can be confusing. A product can look cheap because of its pack size, but the real value is in the price per 100g. This project makes that comparison easier and more transparent.
 
-- [ ] Research Tesco anti-bot cookie wall workarounds
-- [ ] Map out HTML selectors for Tesco regular and Clubcard pricing
-- [ ] Hook scrapers up to the SQLite database to save results automatically
+It is useful for budgeting, checking value, and understanding whether supermarkets are making the real cost harder to compare.
