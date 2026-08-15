@@ -1,6 +1,6 @@
 .venv/
 .vscode/
 products.db
-todo list.text
 __pycache__/
 .pytest_cache/
+todo list
