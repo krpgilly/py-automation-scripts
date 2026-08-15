@@ -31,6 +31,7 @@ def scrape_lidl():
         print(f"Found unit price: {unit_price}")
         return {
             "price": price,
+            "raw_unit_price": unit_price,
             "price_per_100g": normalize_unit_price(unit_price)
         }
 

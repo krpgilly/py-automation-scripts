@@ -1,0 +1,22 @@
+# Weight extraction (find_weight, same fallback-selector pattern as price)
+
+Tests for the three edge cases
+Category-page scraping
+
+1. Category-page scraping (no more one-URL-per-product) — biggest functional upgrade, build the container-loop pattern we talked about earlier.
+
+2. Repo structure — reorganize into folders:
+
+project/
+├── scrapers/       # tesco_scraper.py, lidl_scraper.py
+├── database/        # db.py (your init_db), normalize.py
+├── tests/            # test files
+├── json_api/         # future/mockup requests-based approach
+├── main.py            # orchestrates everything
+└── README.md
+
+3.json_api/ folder — mockup/showcase the "if this were an internal JSON API" approach, even if not wired into main.py yet.
+
+4.main.py — ties scrapers + normalize + database together into one runnable pipeline.
+
+5.README — document what's built, plus the "planned JSON approach" section.
