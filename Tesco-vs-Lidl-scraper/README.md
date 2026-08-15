@@ -126,7 +126,7 @@ This orchestrates the full pipeline (coming soon—currently it's just a TODO li
 
 ## Project Structure
 
-```
+```text
 database/
   db.py              # Schema initialization
   normalize.py       # Price normalization logic + unit conversion
@@ -160,7 +160,7 @@ Why? Because:
 
 Something like:
 
-```
+```bash
 GET /api/compare?product=brie&store=lidl,tesco
 → {
     "product": "brie",
