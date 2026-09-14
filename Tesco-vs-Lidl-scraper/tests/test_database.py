@@ -1,26 +1,22 @@
 import sqlite3
 import pytest
-# Import your exact functions from your project structure
-from database.db import init_db, insert_price
-
-import sqlite3
-import pytest
 from database.db import init_db, insert_price
 
 @pytest.fixture
 def memory_db(monkeypatch):
     db_uri = "file:test_products?mode=memory&cache=shared"
-    
-    anchor_conn = sqlite3.connect(db_uri, uri=True)
-    
-    monkeypatch.setattr("sqlite3.connect", lambda path: sqlite3.connect(db_uri, uri=True))
-    init_db() 
-    
-    test_conn = sqlite3.connect(db_uri, uri=True)
-    
-    yield test_conn  
-    
-    test_conn.close()
+
+    real_connect = sqlite3.connect  
+    anchor_conn = real_connect(db_uri, uri=True)
+
+    monkeypatch.setattr(
+        "sqlite3.connect",
+        lambda path, *args, **kwargs: real_connect(db_uri, uri=True)
+    )
+    init_db()
+
+    yield anchor_conn
+
     anchor_conn.close()
 
 def test_insert_price_creates_records_and_saves_data(memory_db):
@@ -53,10 +49,10 @@ def test_insert_price_creates_records_and_saves_data(memory_db):
     price_record = cur.fetchone()
     
     assert price_record is not None, "Price data was never written to the prices table."
-    assert price_record[0] == store_record[0]      
-    assert price_record[1] == product_record[0]   
-    assert price_record[2] == "£1.65"             
-    assert price_record[3] == "82.5p per 100g"      
-    assert price_record[4] == 0.82                  
-    assert price_record[5] is not None             
+    assert price_record[0] == store_record[0]    
+    assert price_record[1] == product_record[0] 
+    assert price_record[2] == "£1.65"         
+    assert price_record[3] == "82.5p per 100g"    
+    assert price_record[4] == 0.82          
+    assert price_record[5] is not None
 
