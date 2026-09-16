@@ -145,6 +145,7 @@ scrapers/
   tesco_scraper.py   # Tesco scraper
 
 tests/
+  test_database.py   # checks that stores, products, and price data are saved correctly
   test_normalize.py  # checks for edge cases in the price calculation
 
 main.py              # main app entry point; works and stores results
@@ -190,11 +191,20 @@ This is still a future step, but it fits the same project scope: the scraper gat
 
 ## Testing
 
-Run the normalize tests to make sure the price conversion logic still behaves correctly:
+Run the tests to check both the price conversion logic and the database insert workflow:
 
 ```bash
-python -m pytest tests/test_normalize.py -v
+python -m pytest tests/ -v
 ```
+
+The database test uses an in-memory SQLite database, so it checks that:
+
+- store and product records are created
+- raw price and unit price values are saved
+- the normalized price per 100g is saved
+- a scrape timestamp is added
+
+The normalize tests check the price conversion logic, including different currency and weight formats, invalid values, and zero-weight protection.
 
 If needed, install pytest first:
 
