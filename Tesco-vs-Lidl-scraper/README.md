@@ -147,6 +147,7 @@ scrapers/
 tests/
   test_database.py   # checks that stores, products, and price data are saved correctly
   test_normalize.py  # checks for edge cases in the price calculation
+  test_selector.py   # validates the Tesco and Lidl HTML selectors used by the scrapers
 
 main.py              # main app entry point; works and stores results
 README.md            # project overview
@@ -205,6 +206,8 @@ The database test uses an in-memory SQLite database, so it checks that:
 - a scrape timestamp is added
 
 The normalize tests check the price conversion logic, including different currency and weight formats, invalid values, and zero-weight protection.
+
+The selector tests validate the scraper configuration itself by checking that the Tesco and Lidl product selectors are valid CSS selectors and that the product name and price selectors are set up correctly for each store. This helps catch broken selectors early before the scraper tries to parse the page.
 
 If needed, install pytest first:
 
