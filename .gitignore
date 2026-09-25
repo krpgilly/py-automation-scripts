@@ -4,3 +4,5 @@ products.db
 __pycache__/
 .pytest_cache/
 todo list
+.env
+CACHEDIR.TAG
