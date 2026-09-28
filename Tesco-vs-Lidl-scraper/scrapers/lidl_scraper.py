@@ -1,5 +1,3 @@
-import os
-from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -8,14 +6,11 @@ from scrapers.find_price import find_price
 from scrapers.find_price import find_unit_price
 from database.normalize import normalize_unit_price
 
-load_dotenv()
 
 def scrape_lidl():
     url = "https://www.lidl.co.uk/p/milbona-brie/p10045855"
    
     options = webdriver.ChromeOptions()
-    if os.getenv("HEADLESS", "true").lower() == "true":
-        options.add_argument("--headless")
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     driver.get(url)
 
@@ -44,7 +39,6 @@ def scrape_lidl():
 
     except ValueError as e:
         print(f"lidl scraping failed: {e}")
-        return None
     finally:
         driver.quit()
 
