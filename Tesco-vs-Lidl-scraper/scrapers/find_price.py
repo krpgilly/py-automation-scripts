@@ -30,11 +30,9 @@ def find_unit_price(driver, selectors, timeout=10):
                 EC.presence_of_element_located((by, sel))
             )
             text = unit_price_element.text.strip()
-            print(f"DEBUG: selector {sel} found text: '{text}'")
             if re.search(r"£\s*\d+(\.\d+)?\s*/\s*\w+", text):
                 return text
         except TimeoutException:
-              print(f"DEBUG: selector {sel} timed out, no element found")
               continue
 
     raise ValueError(f"None of the selectors worked: {selectors}")
