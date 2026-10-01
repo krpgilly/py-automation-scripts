@@ -22,10 +22,10 @@ def scrape_tesco():
     ]
 
     unit_price_selectors = [
-    (By.CLASS_NAME, "online-components-product-tile-unit-price__subtext"),
-    (By.CSS_SELECTOR, "p.online-components-product-tile-unit-price__subtext"),
-    (By.XPATH, "//p[contains(@class, 'online-components-product-tile-unit-price__subtext')]"),
-]
+        (By.CLASS_NAME, "online-components-product-tile-unit-price__subtext"),
+        (By.CSS_SELECTOR, "p.online-components-product-tile-unit-price__subtext"),
+        (By.XPATH, "//p[contains(@class, 'online-components-product-tile-unit-price__subtext')]"),
+   ]
 
     try:
             price = find_price(driver, price_selectors, timeout=10)

@@ -40,7 +40,7 @@ def normalize_price(price_str, weight_str):
 
 def normalize_unit_price(unit_price_str):
     try:
-        price = unit_price_str.replace("£", "").strip()
+        price = unit_price_str.replace("£", "").replace("(", "").replace(")", "").strip()
 
         if "/100g" in price:
             price = float(price.replace("/100g", "").strip())
