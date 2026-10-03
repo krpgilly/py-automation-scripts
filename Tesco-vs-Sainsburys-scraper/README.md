@@ -1,32 +1,32 @@
-# Tesco vs Lidl Price Comparison
+# Tesco vs Sainsburys Price Comparison
 
-A beginner-friendly Python project that compares supermarket prices using one simple idea: convert everything to a fair value like price per 100g, then compare the shops on the same scale.
+A beginner-friendly Python project that compares supermarket prices by converting each product to a common value: price per 100g. That lets you compare Tesco and Sainsburys fairly, even when the products come in different weights or pack sizes.
 
-This makes it easier to tell whether a product is really cheaper, even when it comes in different sizes or packaging.
+This keeps the comparison focused on actual value rather than marketing pack size.
 
 ## What This Does
 
-The project scrapes product data from Tesco and Lidl, pulls out the raw price and item weight, and then normalizes the result into a single metric: price per 100g.
+The project scrapes product data from Tesco and Sainsburys, extracts the raw price and item weight, and normalizes the result into one metric: price per 100g.
 
-That helps avoid the usual trap where a bigger pack looks cheaper at first glance but is actually worse value.
+That makes it easier to see which supermarket is offering better value for the same product, even when the packaging is different.
 
-The app also stores the results in a local SQLite database so the raw values and the calculated values are both saved. This makes it easier to check what the website gave us and what the app calculated from it.
+The app also stores the results in a local SQLite database so both the raw scraped values and the normalized values are saved. This makes it easy to review the source data and the calculated value side by side.
 
 ---
 
 ## What Is Working Now
 
-The main workflow is now working through `main.py`.
+The main workflow is working through `main.py`.
 
 When you run it, the app:
 
 - creates or updates the database tables
 - pulls data from the Tesco scraper
-- pulls data from the Lidl scraper
+- pulls data from the Sainsburys scraper
 - stores each result in SQLite
 - saves the raw price, unit price, normalized price, and timestamp
 
-This means the app is no longer just a scraper prototype. It is a working pipeline that collects data and saves it in a structured way.
+This means the app is a working pipeline that collects supermarket data and stores it in a structured way.
 
 ---
 
@@ -34,7 +34,7 @@ This means the app is no longer just a scraper prototype. It is a working pipeli
 
 ### Fallback Selectors for Resilience
 
-Web scraping is fragile. A tiny change in the website layout can break a selector. To make the scraper more reliable, each scraper tries a few possible selectors instead of relying on just one.
+Web scraping is fragile. A tiny change in a website layout can break a selector. To make the scrapers more reliable, each one tries a few possible selectors instead of relying on a single one.
 
 ```python
 price_selectors = [
@@ -44,7 +44,7 @@ price_selectors = [
 ]
 ```
 
-The `find_price()` function checks each option in order and uses the first one that appears. If none work, it raises a useful error instead of returning bad data quietly.
+The `find_price()` function checks each option in order and uses the first one that works. If none match, it raises a useful error instead of returning bad data quietly.
 
 ### Normalize Edge Cases Handled
 
@@ -60,7 +60,7 @@ This is important because the comparison should be fair. If you normalize correc
 
 ### Database Schema: Raw + Computed Values
 
-The database keeps both the original values and the calculated values:
+The database keeps both the original scraped values and the calculated values:
 
 ```sql
 CREATE TABLE prices (
@@ -79,7 +79,7 @@ CREATE TABLE prices (
 );
 ```
 
-This is helpful because if the normalization logic changes later, the original scraped values are still there. You can always re-calculate and compare old data without losing the source information.
+This is helpful because if the normalization logic changes later, the original scraped values remain available. You can always recalculate and compare old data without losing the source information.
 
 ---
 
@@ -126,7 +126,7 @@ This creates `products.db` in the project root and sets up the tables for stores
 python main.py
 ```
 
-This is the main entry point. It runs the scraping flow, saves data to SQLite, and compares the product results in the current working setup.
+This is the main entry point. It runs the scraping flow, saves data to SQLite, and updates the current price comparison data.
 
 If you want to run an individual scraper manually, the project still supports that pattern too.
 
@@ -141,13 +141,13 @@ database/
 
 scrapers/
   find_price.py      # selector fallback logic
-  lidl_scraper.py    # Lidl scraper
+  sainsburys_scraper.py  # Sainsburys scraper
   tesco_scraper.py   # Tesco scraper
 
 tests/
   test_database.py   # checks that stores, products, and price data are saved correctly
   test_normalize.py  # checks for edge cases in the price calculation
-  test_selector.py   # validates the Tesco and Lidl HTML selectors used by the scrapers
+  test_selector.py   # validates the Tesco and Sainsburys HTML selectors used by the scrapers
 
 main.py              # main app entry point; works and stores results
 README.md            # project overview
@@ -176,11 +176,11 @@ Why this is a good next step:
 An example of the kind of output we want:
 
 ```bash
-GET /api/compare?product=brie&store=lidl,tesco
+GET /api/compare?product=brie&store=sainsburys,tesco
 → {
     "product": "brie",
     "results": [
-      {"store": "lidl", "price_per_100g": 0.82, "scraped_at": "2026-08-14T10:30:00"},
+      {"store": "sainsburys", "price_per_100g": 0.82, "scraped_at": "2026-08-14T10:30:00"},
       {"store": "tesco", "price_per_100g": 0.95, "scraped_at": "2026-08-14T10:30:00"}
     ]
   }
@@ -207,7 +207,7 @@ The database test uses an in-memory SQLite database, so it checks that:
 
 The normalize tests check the price conversion logic, including different currency and weight formats, invalid values, and zero-weight protection.
 
-The selector tests validate the scraper configuration itself by checking that the Tesco and Lidl product selectors are valid CSS selectors and that the product name and price selectors are set up correctly for each store. This helps catch broken selectors early before the scraper tries to parse the page.
+The selector tests validate the scraper configuration itself by checking that the Tesco and Sainsburys product selectors are valid CSS selectors and that the product name and price selectors are set up correctly for each store. This helps catch broken selectors early before the scraper tries to parse the page.
 
 If needed, install pytest first:
 
@@ -228,7 +228,7 @@ The project is now in a stronger position than before:
 
 Possible future improvements include:
 
-- better Tesco selectors and anti-bot handling
+- better Tesco and Sainsburys selectors and anti-bot handling
 - product matching for more than hardcoded examples
 - scheduled scraping for price history
 - a simple frontend or API dashboard
